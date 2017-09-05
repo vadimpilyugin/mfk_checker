@@ -14,7 +14,7 @@ end
 
 def alert_if_has_empty(id, bot, chat_id)
   response = check_site_for_updates(id)
-  if response[:ok] #&& response[:current] < response[:all]
+  if response[:ok] && response[:current] < response[:all]
     bot.api.send_message(
       chat_id: chat_id,
       parse_mode: 'Markdown',
@@ -39,15 +39,13 @@ Telegram::Bot::Client.run(token) do |bot|
         response = check_site_for_updates(course_id)
         if response[:ok]
           bot.api.send_message(chat_id: message.chat.id, text: "Ок! Буду следить за этим курсом")
-          bot.api.send_message(chat_id: message.chat.id, text: "Места: #{response['current']}/#{response['all']}")
-          # user_list[message.chat.id] = message.text.to_i
-          thr = Thread.new do
+          bot.api.send_message(chat_id: message.chat.id, parse_mode: "Markdown", text: "Места: *#{response[:current]}/#{response[:all]}*")
+          user_list[message.chat.id] = Thread.new do
             while true do
               alert_if_has_empty(course_id, bot, message.chat.id)
               sleep SECONDS_TO_WAIT
             end
           end
-          user_list[message.chat.id] = thr
         else
           bot.api.send_message(chat_id: message.chat.id, text: "Извини! Произошла ошибка")
         end
@@ -66,6 +64,7 @@ Telegram::Bot::Client.run(token) do |bot|
         end
       else
         bot.api.send_message(chat_id: message.chat.id, text: "Сначала напиши id курса, который нужно мониторить")
+      end
     end
   end
 end
