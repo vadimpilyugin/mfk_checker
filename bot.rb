@@ -40,23 +40,24 @@ Telegram::Bot::Client.run(token) do |bot|
         if response[:ok]
           bot.api.send_message(chat_id: message.chat.id, text: "Ок! Буду следить за этим курсом")
           bot.api.send_message(chat_id: message.chat.id, parse_mode: "Markdown", text: "Места: *#{response[:current]}/#{response[:all]}*")
-          user_list[message.chat.id] = Thread.new do
+          thr = Thread.new do
             while true do
               alert_if_has_empty(course_id, bot, message.chat.id)
               sleep SECONDS_TO_WAIT
             end
           end
+          user_list[message.chat.id] = {thr: thr, course_id: course_id}
         else
           bot.api.send_message(chat_id: message.chat.id, text: "Извини! Произошла ошибка")
         end
       end
     when '/stop'
       bot.api.send_message(chat_id: message.chat.id, text: "Прощай!")
-      Thread.kill(user_list[message.chat.id]) if user_list.has_key?(message.chat.id)
+      Thread.kill(user_list[message.chat.id][:thr]) if user_list.has_key?(message.chat.id)
       user_list.delete(message.chat.id)
     when '/test'
       if user_list.has_key?(message.chat.id)
-        rsp = check_site_for_updates(user_list[message.chat.id])
+        rsp = check_site_for_updates(user_list[message.chat.id][:course_id])
         if rsp[:ok]
           bot.api.send_message(chat_id: message.chat.id, text: "Текущие места: #{rsp[:current]}\nВсего мест: #{rsp[:all]}")
         else
