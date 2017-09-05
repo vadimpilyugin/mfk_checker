@@ -1,6 +1,27 @@
 require 'telegram/bot'
 require "open-uri"
 
+def check_site_for_updates(id)
+  data = URI.parse("https://lk.msu.ru/course/view?id=#{id}").read
+  regex = /<p><strong>Записалось \/ всего мест<\/strong><br \/>\s+(?<current>\d+)\s+\/\s+(?<all>\d+)/
+  if data =~ regex
+    return {current: $~['current'].to_i, all: $~['all'].to_i, ok: true}
+      # 
+  else
+    return {ok: false}
+  end
+end
+
+def alert_if_has_empty(id, bot, chat_id)
+  response = check_site_for_updates(id)
+  if response[:ok] #&& response[:current] < response[:all]
+    bot.api.send_message(
+      chat_id: chat_id,
+      parse_mode: 'Markdown',
+      text:"Эй! Появилось место на курсе!\n"+"(https://lk.msu.ru/course/view?id=#{id})\n"+"Места: *#{response[:current]}/#{response[:all]}*\n")
+  end
+end
+
 BOT_TOKEN = '368621709:AAFU630-YbkR7FKV7jnpXBpoYdaeNiYVR_E'
 SECONDS_TO_WAIT = 60
 
@@ -35,27 +56,13 @@ Telegram::Bot::Client.run(token) do |bot|
       bot.api.send_message(chat_id: message.chat.id, text: "Прощай!")
       Process.kill('INT', user_list[message.chat.id]) if user_list.has_key?(message.chat.id)
       user_list.delete(message.chat.id)
+    when '/test'
+      rsp = check_site_for_updates(user_list[message.chat.id])
+      if rsp[:ok]
+        bot.api.send_message(chat_id: message.chat.id, text: "Текущие места: #{rsp[:current]}\nВсего мест: #{rsp[:all]}")
+      else
+        bot.api.send_message(chat_id: message.chat.id, text: "Произошла ошибка с запросом к сайту МФК!")
+      end
     end
-  end
-end
-
-def check_site_for_updates(id)
-  data = URI.parse("https://lk.msu.ru/course/view?id=#{id}").read
-  regex = /<p><strong>Записалось \/ всего мест<\/strong><br \/>\s+(?<current>\d+)\s+\/\s+(?<all>\d+)/
-  if data =~ regex
-    return {current: $~['current'].to_i, all: $~['all'].to_i, ok: true}
-    	# 
-  else
-    return {ok: false}
-  end
-end
-
-def alert_if_has_empty(id, bot, chat_id)
-  response = check_site_for_updates(id)
-  if response[:ok] #&& response[:current] < response[:all]
-    bot.api.send_message(
-      chat_id: chat_id,
-      parse_mode: 'Markdown',
-      text:"Эй! Появилось место на курсе!\n"+"(https://lk.msu.ru/course/view?id=#{id})\n"+"Места: *#{response[:current]}/#{response[:all]}*\n")
   end
 end
