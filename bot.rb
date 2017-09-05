@@ -1,13 +1,17 @@
 require 'telegram/bot'
-require "open-uri"
+require 'open-uri'
+# require 'printer'
 
 def check_site_for_updates(id)
-  data = URI.parse("https://lk.msu.ru/course/view?id=#{id}").read
-  regex = /<p><strong>Записалось \/ всего мест<\/strong><br \/>\s+(?<current>\d+)\s+\/\s+(?<all>\d+)/
-  if data =~ regex
-    return {current: $~['current'].to_i, all: $~['all'].to_i, ok: true}
-      # 
-  else
+  begin
+    data = URI.parse("https://lk.msu.ru/course/view?id=#{id}").read
+    regex = /<p><strong>Записалось \/ всего мест<\/strong><br \/>\s+(?<current>\d+)\s+\/\s+(?<all>\d+)/
+    if data =~ regex
+      return {current: $~['current'].to_i, all: $~['all'].to_i, ok: true}
+    else
+      return {ok: false}
+    end
+  rescue OpenURI::HTTPError
     return {ok: false}
   end
 end
@@ -19,6 +23,11 @@ def alert_if_has_empty(id, bot, chat_id)
       chat_id: chat_id,
       parse_mode: 'Markdown',
       text:"Эй! Появилось место на курсе!\n"+"(https://lk.msu.ru/course/view?id=#{id})\n"+"Места: *#{response[:current]}/#{response[:all]}*\n")
+  elsif !response[:ok]
+    bot.api.send_message(
+      chat_id: chat_id,
+      text: "Не получилось проверить, свободно ли место :("
+    )
   end
 end
 
@@ -48,7 +57,10 @@ Telegram::Bot::Client.run(token) do |bot|
           end
           user_list[message.chat.id] = {thr: thr, course_id: course_id}
         else
-          bot.api.send_message(chat_id: message.chat.id, text: "Извини! Произошла ошибка")
+          bot.api.send_message(
+            chat_id: message.chat.id, 
+            text: "Похоже, такого курса не существует. Проверь, открывается ли ссылка (https://lk.msu.ru/course/view?id=#{course_id})"
+          )
         end
       end
     when '/stop'
