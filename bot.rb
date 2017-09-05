@@ -57,11 +57,13 @@ Telegram::Bot::Client.run(token) do |bot|
       user_list.delete(message.chat.id)
     when '/test'
       if user_list.has_key?(message.chat.id)
-        rsp = check_site_for_updates(user_list[message.chat.id][:course_id])
-        if rsp[:ok]
-          bot.api.send_message(chat_id: message.chat.id, text: "Текущие места: #{rsp[:current]}\nВсего мест: #{rsp[:all]}")
-        else
-          bot.api.send_message(chat_id: message.chat.id, text: "Произошла ошибка с запросом к сайту МФК!")
+        Thread.new do
+          rsp = check_site_for_updates(user_list[message.chat.id][:course_id])
+          if rsp[:ok]
+            bot.api.send_message(chat_id: message.chat.id, text: "Текущие места: #{rsp[:current]}\nВсего мест: #{rsp[:all]}")
+          else
+            bot.api.send_message(chat_id: message.chat.id, text: "Произошла ошибка с запросом к сайту МФК!")
+          end
         end
       else
         bot.api.send_message(chat_id: message.chat.id, text: "Сначала напиши id курса, который нужно мониторить")
