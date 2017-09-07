@@ -31,7 +31,7 @@ def alert_if_has_empty(id, bot, chat_id)
   end
 end
 
-BOT_TOKEN = '368621709:AAFU630-YbkR7FKV7jnpXBpoYdaeNiYVR_E'
+BOT_TOKEN = ''
 SECONDS_TO_WAIT = 60
 
 token = BOT_TOKEN
