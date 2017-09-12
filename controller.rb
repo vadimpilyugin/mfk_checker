@@ -106,13 +106,18 @@ class Controller
               )
             end
           when /\/check/
-            # возвращаем сообщение с курсами и их заполненностью
-            View::test_message(message.chat.id).each do |msg|
-              bot.api.send_message(
-                parse_mode: 'Markdown', 
-                chat_id: message.chat.id, 
-                text: msg
-              )
+            # запускаем новую нить, которая проверит курсы пользователя
+            Thread.new do
+              # для каждого курса пользователя вызываем метод обновления курса
+              User.get(message.chat.id).courses.each {|crs| Course.update_course(crs.course_id)}
+              # посылаем сообщение с курсами
+              View::test_message(message.chat.id).each do |msg|
+                bot.api.send_message(
+                  parse_mode: 'Markdown', 
+                  chat_id: message.chat.id, 
+                  text: msg
+                )
+              end
             end
           when '/help'
             bot.api.send_message(
@@ -125,7 +130,6 @@ class Controller
     end
   end
   def self.update_courses(bot)
-    free_courses = Queue.new
     while true
       # выбираем список курсов, у которых есть подписчики и время последнего обновления меньше
       # текущего минус число секунд
@@ -154,12 +158,8 @@ class Controller
           course = Course.get(course_id)
           # если места есть
           if course.has_free?
-            # кладем в очередь курс для обработки в нити
-            free_courses.enq course
             # создаем новую нить для отправки уведомлений пользователям
-            Thread.new do
-              # достаем из очереди курс
-              crs = free_courses.deq
+            Thread.new(course) do |crs|
               Printer::debug(
                 who:"[update_courses]", 
                 msg:"course '#{crs.name}' has #{crs.all - crs.current} empty places!"

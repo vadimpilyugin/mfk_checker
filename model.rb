@@ -376,5 +376,5 @@ class Course
 end
 
 DataMapper.finalize
-DataMapper.setup :default, "mysql://username:password@localhost/database"
+DataMapper.setup :default, "mysql://@localhost/"
 DataMapper.auto_upgrade!

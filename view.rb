@@ -76,8 +76,13 @@ class View
     course_to_string(Course.get(course_id))
   end
   def self.test_message(chat_id)
-    # для всех курсов пользователя переводим каждый в строку
-    User.get(chat_id).courses.map { |crs| course_to_string(crs) }
+    # если у пользователя нет курсов
+    if User.get(chat_id).courses.count == 0
+      ['У тебя еще нет курсов :)']
+    else
+      # для всех курсов пользователя переводим каждый в строку
+      User.get(chat_id).courses.map { |crs| course_to_string(crs) }
+    end
   end
   def self.free_place(crs)
     "Эй! Появилось место на курсе '#{crs.name}!'\n"+
