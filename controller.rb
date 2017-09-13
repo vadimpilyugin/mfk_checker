@@ -4,7 +4,7 @@ require 'telegram/bot'
 
 class Controller
   BOT_TOKEN = ''
-  SECONDS_TO_WAIT = 60
+  SECONDS_TO_WAIT = 10
 
   def self.run_bot
     Telegram::Bot::Client.run(BOT_TOKEN) do |bot|
@@ -156,8 +156,8 @@ class Controller
           Course.update_course(course_id)
           # сохраняем запись о курсе
           course = Course.get(course_id)
-          # если места есть
-          if course.has_free?
+          # если места только что появились либо места только что закончились
+          if course.has_changed
             # создаем новую нить для отправки уведомлений пользователям
             Thread.new(course) do |crs|
               Printer::debug(
@@ -167,9 +167,11 @@ class Controller
               # для всех пользователей, подписанных на курс
               crs.users.each do |user|
                 # сообщаем, что есть свободные места
-                bot.api.send_message parse_mode: 'Markdown', 
+                bot.api.send_message( 
+                  parse_mode: 'Markdown', 
                   chat_id: user.chat_id, 
                   text: View::free_place(crs)
+                )
               end
             end
           end
