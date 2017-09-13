@@ -85,8 +85,15 @@ class View
     end
   end
   def self.free_place(crs)
-    "Эй! Появилось место на курсе '#{crs.name}!'\n"+
-    id_to_url(crs.course_id)+"\n"+
-    "Места: "+bold("#{crs.current}/#{crs.all}")
+    # Места появились
+    if crs.has_free?
+      "Эй! Появилось место на курсе '#{crs.name}'!\n"+
+      id_to_url(crs.course_id)+"\n"+
+      "Места: "+bold("#{crs.current}/#{crs.all}")
+    # Места кончились
+    else
+      "Места на курсе '#{crs.name}' кончились!\n"+
+      "Места: "+bold("#{crs.current}/#{crs.all}")
+    end
   end
 end
