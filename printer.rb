@@ -99,9 +99,9 @@ class Printer
 
     in_place = hsh[:in_place] ? hsh[:in_place] : false
     if in_place
-      printf "#{who}\t#{msg}\r"
+      printf "#{Time.now}"[0..-7]+"\t#{who}\t#{msg}\r"
     else
-      printf "#{who}\t#{msg}\n"
+      printf "#{Time.now}"[0..-7]+"\t#{who}\t#{msg}\n"
       if hsh[:params]
         hsh[:params].my_pp
       end
@@ -142,7 +142,7 @@ class Printer
     msg = msg.to_s.perc_esc.send(@msg_color)
     who = who.to_s.perc_esc.send(@error_msg_color)
 
-    printf "#{who}\t#{msg}\n"
+    printf "#{Time.now}"[0..-7]+"\t#{who}\t#{msg}\n"
     if hsh[:params]
       hsh[:params].my_pp
     end
@@ -183,9 +183,9 @@ class Printer
     expr = hsh[:expr] == nil ? true : hsh[:expr]
     if expr
       if in_place
-        printf "#{who}: #{msg}\r"
+        printf "#{Time.now}"[0..-7]+"\t#{who}: #{msg}\r"
       else
-        printf "#{who}: #{msg}\n"
+        printf "#{Time.now}"[0..-7]+"\t#{who}: #{msg}\n"
       end
       if hsh[:params]
         hsh[:params].my_pp
