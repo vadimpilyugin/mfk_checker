@@ -139,17 +139,16 @@ class Controller
                 (select count(*) from course_users 
                 where course_course_id = courses.course_id) > 0 order by (select count(*) from course_users 
                 where course_course_id = courses.course_id) desc')
-      # отладочная печать
-      Printer::debug(
-        who:"[update_courses]",
-        msg:"#{courses_to_update.size} courses to update"
-      )
       # если нет курсов для обновления
       if courses_to_update.empty?
         # спим 1 секунду
         sleep 1
       # если есть курсы
       else
+        Printer::debug(
+          who:"[update_courses]",
+          msg:"#{courses_to_update.size} courses to update"
+        )
         # для каждого курса из выбранной группы
         courses_to_update.each do |course_id| 
           # вызываем функцию обновления
