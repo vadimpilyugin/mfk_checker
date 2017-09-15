@@ -68,7 +68,7 @@ class View
     "*#{s}*"
   end
   def self.course_to_string(crs)
-    "#{crs.name}\n"+
+    "[#{crs.name}]"+
     "#{id_to_url(crs.course_id)}\n"+
     "Места: "+bold("#{crs.current}/#{crs.all}")
   end
@@ -87,8 +87,8 @@ class View
   def self.free_place(crs)
     # Места появились
     if crs.has_free?
-      "Эй! Появилось место на курсе '#{crs.name}'!\n"+
-      id_to_url(crs.course_id)+"\n"+
+      "Эй! Появилось место на курсе ['#{crs.name}']"+
+      id_to_url(crs.course_id)+"!\n"+
       "Места: "+bold("#{crs.current}/#{crs.all}")
     # Места кончились
     else
