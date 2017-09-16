@@ -108,14 +108,14 @@ class Controller
           when /\/check/
             # запускаем новую нить, которая проверит курсы пользователя
             Thread.new do
-              # для каждого курса пользователя вызываем метод обновления курса
-              User.get(message.chat.id).courses.each {|crs| Course.update_course(crs.course_id)}
-              # посылаем сообщение с курсами
-              View::test_message(message.chat.id).each do |msg|
+              # для каждого курса пользователя
+              User.get(message.chat.id).courses.each do |crs| 
+                Course.update_course(crs.course_id)
+                # посылаем пользователю обновленную информацию
                 bot.api.send_message(
                   parse_mode: 'Markdown', 
                   chat_id: message.chat.id, 
-                  text: msg
+                  text: View::course_to_string(crs)
                 )
               end
             end
